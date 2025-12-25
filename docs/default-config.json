@@ -1,0 +1,206 @@
+{
+  // Layout algorithm for tiling windows
+  // Options: "dwindle" (binary space partitioning), "stack" (master-stack)
+  "layout": "dwindle",
+
+  // Outer margins in pixels (gap between screen edges and windows)
+  "left": 5,
+  "top": 5,
+  "right": 5,
+  "bottom": 5,
+
+  // Inner gap in pixels (gap between tiled windows)
+  "inner": 5,
+
+  // Number of virtual workspaces (1-9 recommended)
+  "workspaces": 9,
+
+  // Enable sliding animations when switching workspaces
+  "workspaceAnimations": false,
+
+  // Animation duration in milliseconds
+  "workspaceAnimationsDuration": 500,
+
+  // Animation direction: "horizontal" (left/right) or "vertical" (up/down)
+  "workspaceAnimationsDirection": "horizontal",
+
+  // Default size for floating windows (WIDTHxHEIGHT in pixels)
+  "floatingWindowSize": "800x400",
+
+  // WebSocket server port for IPC (remote control and state queries)
+  "serverPort": 6969,
+
+  // Primary modifier key for shortcuts (similar to $mod in i3/Sway)
+  // Options: "LMENU" (Alt - default), "LCONTROL", "LWIN", "RWIN", etc.
+  // Use "modKey" placeholder in keymaps to reference this key
+  // Note: LWIN (Windows key) not recommended due to conflicts with Start menu
+  "modKey": "LMENU",
+
+  // Window border colors (Windows 11 Build 22000+ only)
+  "windowBorders": {
+    // Master toggle for border colors
+    "enabled": true,
+
+    // Border color for focused window
+    // Hex color string (e.g., "#00FF00" for green) or false to disable
+    "activeBorderColor": "#00FF00",
+
+    // Border color for unfocused windows
+    // Hex color string or false to use system default
+    "inactiveBorderColor": false
+  },
+
+  // Per-application window rules
+  "rules": [
+    // Example: Make calculator always float
+    // {
+    //   "type": "float",          // Action: "float" or "ignore"
+    //   "method": "exe",          // Match by: "exe", "title", or "class"
+    //   "identifierType": "equals", // Match type: "equals", "contains", "startsWith", "endsWith"
+    //   "identifier": "calc.exe"  // Value to match
+    // }
+  ],
+
+  // Keyboard shortcuts
+  // Use "modKey" placeholder to reference the configured modifier key
+  "keymaps": [
+    // === Window Focus (mod + arrow keys) ===
+    {
+      "keys": ["modKey", "LEFT"],
+      "command": "FOCUS_LEFT_WINDOW",
+      "arguments": []
+    },
+    {
+      "keys": ["modKey", "UP"],
+      "command": "FOCUS_TOP_WINDOW",
+      "arguments": []
+    },
+    {
+      "keys": ["modKey", "RIGHT"],
+      "command": "FOCUS_RIGHT_WINDOW",
+      "arguments": []
+    },
+    {
+      "keys": ["modKey", "DOWN"],
+      "command": "FOCUS_BOTTOM_WINDOW",
+      "arguments": []
+    },
+
+    // === Move Windows in Workspace (mod + shift + arrow left/right) ===
+    {
+      "keys": ["modKey", "LSHIFT", "LEFT"],
+      "command": "SHIFT_FOCUSED_WINDOW_LEFT",
+      "arguments": []
+    },
+    {
+      "keys": ["modKey", "LSHIFT", "RIGHT"],
+      "command": "SHIFT_FOCUSED_WINDOW_RIGHT",
+      "arguments": []
+    },
+
+    // === Move Window to Next/Prev Workspace (ctrl + mod + arrow left/right) ===
+    {
+      "keys": ["LCONTROL", "modKey", "LEFT"],
+      "command": "SHIFT_WINDOW_PREVIOUS_WORKSPACE",
+      "arguments": []
+    },
+    {
+      "keys": ["LCONTROL", "modKey", "RIGHT"],
+      "command": "SHIFT_WINDOW_NEXT_WORKSPACE",
+      "arguments": []
+    },
+
+    // === Switch Between Workspaces (ctrl + shift + arrow left/right) ===
+    {
+      "keys": ["LCONTROL", "LSHIFT", "LEFT"],
+      "command": "FOCUS_PREVIOUS_WORKSPACE",
+      "arguments": []
+    },
+    {
+      "keys": ["LCONTROL", "LSHIFT", "RIGHT"],
+      "command": "FOCUS_NEXT_WORKSPACE",
+      "arguments": []
+    },
+
+    // === Window Actions ===
+    {
+      "keys": ["modKey", "Q"],
+      "command": "CLOSE_FOCUSED_WINDOW",
+      "arguments": []
+    },
+    {
+      "keys": ["modKey", "F"],
+      "command": "TOGGLE_FLOATING_WINDOW",
+      "arguments": []
+    },
+    {
+      "keys": ["LCONTROL", "LSHIFT", "S"],
+      "command": "TOGGLE_STACKED_WINDOW",
+      "arguments": []
+    },
+
+    // === Jump to Numbered Workspace (mod + 1-9) ===
+    {
+      "keys": ["modKey", "NUM1"],
+      "command": "FOCUS_WORKSPACE_1",
+      "arguments": []
+    },
+    {
+      "keys": ["modKey", "NUM2"],
+      "command": "FOCUS_WORKSPACE_2",
+      "arguments": []
+    },
+    {
+      "keys": ["modKey", "NUM3"],
+      "command": "FOCUS_WORKSPACE_3",
+      "arguments": []
+    },
+    {
+      "keys": ["modKey", "NUM4"],
+      "command": "FOCUS_WORKSPACE_4",
+      "arguments": []
+    },
+    {
+      "keys": ["modKey", "NUM5"],
+      "command": "FOCUS_WORKSPACE_5",
+      "arguments": []
+    },
+    {
+      "keys": ["modKey", "NUM6"],
+      "command": "FOCUS_WORKSPACE_6",
+      "arguments": []
+    },
+    {
+      "keys": ["modKey", "NUM7"],
+      "command": "FOCUS_WORKSPACE_7",
+      "arguments": []
+    },
+    {
+      "keys": ["modKey", "NUM8"],
+      "command": "FOCUS_WORKSPACE_8",
+      "arguments": []
+    },
+    {
+      "keys": ["modKey", "NUM9"],
+      "command": "FOCUS_WORKSPACE_9",
+      "arguments": []
+    },
+
+    // === WinWM Commands (ctrl + shift) ===
+    {
+      "keys": ["LCONTROL", "LSHIFT", "R"],
+      "command": "RESTART",  // Hot-reload configuration
+      "arguments": []
+    },
+    {
+      "keys": ["LCONTROL", "LSHIFT", "U"],
+      "command": "UPDATE",   // Refresh tiling layout
+      "arguments": []
+    },
+    {
+      "keys": ["LCONTROL", "LSHIFT", "Q"],
+      "command": "EXIT",     // Shutdown WinWM
+      "arguments": []
+    }
+  ]
+}

@@ -318,19 +318,48 @@ class WinWM : IDisposable
     {
         Logger.Log("Exit command received, shutting down WinWM...");
 
-        // Show all managed windows before exiting
-        int windowCount = 0;
-        winwm?.wm.workspaces.ForEach(wksp =>
-            wksp?.windows.ForEach(wnd =>
-            {
-                wnd?.Show();
-                windowCount++;
-            })
-        );
-        Logger.Log($"Restored {windowCount} windows before exit");
+        // First, unhook all event listeners to prevent interference
+        winwm?.wndListener.Dispose();
+        winwm?.kbdListener.Dispose();
+        winwm?.mouseListener.Dispose();
+        Logger.Log("Unhooked all event listeners");
 
-        // Cleanup and dispose
-        winwm?.Dispose();
+        int workspace1Count = 0;
+        int otherWorkspacesCount = 0;
+
+        // Process windows by workspace
+        for (int i = 0; i < (winwm?.wm.workspaces.Count ?? 0); i++)
+        {
+            var wksp = winwm?.wm.workspaces[i];
+            if (wksp == null) continue;
+
+            foreach (var wnd in wksp.windows)
+            {
+                if (wnd == null) continue;
+
+                // Reset border color to system default
+                wnd.ResetBorderColor();
+
+                if (i == 0)
+                {
+                    // Workspace 1: Show windows normally (they stay visible)
+                    User32.ShowWindow(wnd.hWnd, SHOWWINDOW.SW_SHOWNOACTIVATE);
+                    workspace1Count++;
+                }
+                else
+                {
+                    // Other workspaces: Show then minimize (makes them accessible in taskbar)
+                    User32.ShowWindow(wnd.hWnd, SHOWWINDOW.SW_SHOWNOACTIVATE);
+                    User32.ShowWindow(wnd.hWnd, SHOWWINDOW.SW_MINIMIZE);
+                    otherWorkspacesCount++;
+                }
+            }
+        }
+
+        Logger.Log($"Exit cleanup: {workspace1Count} windows visible from workspace 1, {otherWorkspacesCount} windows minimized from other workspaces");
+
+        // Complete cleanup and dispose remaining components
+        winwm?.server.Dispose();
 
         Logger.Log("WinWM shutdown complete");
 

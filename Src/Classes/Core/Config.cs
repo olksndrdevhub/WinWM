@@ -21,51 +21,69 @@ public class Config : IJson<Config>
     public string workspaceAnimationsDirection = "horizontal";
     public int serverPort = 6969;
 
+    // Modifier key for shortcuts (default: Alt key)
+    public VK modKey { get; set; } = VK.LMENU;
+
+    // Window border settings (Windows 11+ only)
+    public WindowBorderConfig windowBorders = new();
+
     public List<WindowRule> rules = new();
-    public List<Keymap> keymaps = new()
+    public List<Keymap> keymaps = new();
+
+    public Config()
     {
-        // focus workspaces
-        new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.L], command = COMMAND.FOCUS_NEXT_WORKSPACE },
-        new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.H], command = COMMAND.FOCUS_PREVIOUS_WORKSPACE },
-        // close window
-        new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.X], command = COMMAND.CLOSE_FOCUSED_WINDOW },
-        // toggle floating window
-        new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.Z], command = COMMAND.TOGGLE_FLOATING_WINDOW },
-        // toggle stacked window
-        new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.S], command = COMMAND.TOGGLE_STACKED_WINDOW },
-        // focus window
-        new() { keys = [VK.LCONTROL, VK.H], command = COMMAND.FOCUS_LEFT_WINDOW },
-        new() { keys = [VK.LCONTROL, VK.K], command = COMMAND.FOCUS_TOP_WINDOW },
-        new() { keys = [VK.LCONTROL, VK.L], command = COMMAND.FOCUS_RIGHT_WINDOW },
-        new() { keys = [VK.LCONTROL, VK.J], command = COMMAND.FOCUS_BOTTOM_WINDOW },
-        // shift focused window (left/right)
-        new() { keys = [VK.LMENU, VK.L], command = COMMAND.SHIFT_FOCUSED_WINDOW_RIGHT },
-        new() { keys = [VK.LMENU, VK.H], command = COMMAND.SHIFT_FOCUSED_WINDOW_LEFT },
-        // shift focused window (workspace)
-        new()
+        // Initialize keymaps with default values using modKey
+        InitializeDefaultKeymaps();
+    }
+
+    private void InitializeDefaultKeymaps()
+    {
+        keymaps = new()
         {
-            keys = [VK.LMENU, VK.LSHIFT, VK.L],
-            command = COMMAND.SHIFT_WINDOW_NEXT_WORKSPACE,
-        },
-        new()
-        {
-            keys = [VK.LMENU, VK.LSHIFT, VK.H],
-            command = COMMAND.SHIFT_WINDOW_PREVIOUS_WORKSPACE,
-        },
-        // jump to numbered workspace
-        new() { keys = [VK.LMENU, VK.NUM1], command = COMMAND.FOCUS_WORKSPACE_1 },
-        new() { keys = [VK.LMENU, VK.NUM2], command = COMMAND.FOCUS_WORKSPACE_2 },
-        new() { keys = [VK.LMENU, VK.NUM3], command = COMMAND.FOCUS_WORKSPACE_3 },
-        new() { keys = [VK.LMENU, VK.NUM4], command = COMMAND.FOCUS_WORKSPACE_4 },
-        new() { keys = [VK.LMENU, VK.NUM5], command = COMMAND.FOCUS_WORKSPACE_5 },
-        new() { keys = [VK.LMENU, VK.NUM6], command = COMMAND.FOCUS_WORKSPACE_6 },
-        new() { keys = [VK.LMENU, VK.NUM7], command = COMMAND.FOCUS_WORKSPACE_7 },
-        new() { keys = [VK.LMENU, VK.NUM8], command = COMMAND.FOCUS_WORKSPACE_8 },
-        new() { keys = [VK.LMENU, VK.NUM9], command = COMMAND.FOCUS_WORKSPACE_9 },
-        new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.R], command = COMMAND.RESTART },
-        new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.U], command = COMMAND.UPDATE },
-        new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.Q], command = COMMAND.EXIT },
-    };
+            // Focus windows using mod + arrow keys
+            new() { keys = [modKey, VK.LEFT], command = COMMAND.FOCUS_LEFT_WINDOW },
+            new() { keys = [modKey, VK.UP], command = COMMAND.FOCUS_TOP_WINDOW },
+            new() { keys = [modKey, VK.RIGHT], command = COMMAND.FOCUS_RIGHT_WINDOW },
+            new() { keys = [modKey, VK.DOWN], command = COMMAND.FOCUS_BOTTOM_WINDOW },
+
+            // Move windows in workspace using mod + shift + arrow left/right
+            new() { keys = [modKey, VK.LSHIFT, VK.LEFT], command = COMMAND.SHIFT_FOCUSED_WINDOW_LEFT },
+            new() { keys = [modKey, VK.LSHIFT, VK.RIGHT], command = COMMAND.SHIFT_FOCUSED_WINDOW_RIGHT },
+
+            // Move window to next/prev workspace using ctrl + mod + arrow left/right
+            new() { keys = [VK.LCONTROL, modKey, VK.LEFT], command = COMMAND.SHIFT_WINDOW_PREVIOUS_WORKSPACE },
+            new() { keys = [VK.LCONTROL, modKey, VK.RIGHT], command = COMMAND.SHIFT_WINDOW_NEXT_WORKSPACE },
+
+            // Switch between workspaces using ctrl + shift + arrow left/right
+            new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.LEFT], command = COMMAND.FOCUS_PREVIOUS_WORKSPACE },
+            new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.RIGHT], command = COMMAND.FOCUS_NEXT_WORKSPACE },
+
+            // Close window with mod + Q
+            new() { keys = [modKey, VK.Q], command = COMMAND.CLOSE_FOCUSED_WINDOW },
+
+            // Toggle floating with mod + F
+            new() { keys = [modKey, VK.F], command = COMMAND.TOGGLE_FLOATING_WINDOW },
+
+            // Toggle stacked window (keeping old binding)
+            new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.S], command = COMMAND.TOGGLE_STACKED_WINDOW },
+
+            // Jump to numbered workspace using mod + number
+            new() { keys = [modKey, VK.NUM1], command = COMMAND.FOCUS_WORKSPACE_1 },
+            new() { keys = [modKey, VK.NUM2], command = COMMAND.FOCUS_WORKSPACE_2 },
+            new() { keys = [modKey, VK.NUM3], command = COMMAND.FOCUS_WORKSPACE_3 },
+            new() { keys = [modKey, VK.NUM4], command = COMMAND.FOCUS_WORKSPACE_4 },
+            new() { keys = [modKey, VK.NUM5], command = COMMAND.FOCUS_WORKSPACE_5 },
+            new() { keys = [modKey, VK.NUM6], command = COMMAND.FOCUS_WORKSPACE_6 },
+            new() { keys = [modKey, VK.NUM7], command = COMMAND.FOCUS_WORKSPACE_7 },
+            new() { keys = [modKey, VK.NUM8], command = COMMAND.FOCUS_WORKSPACE_8 },
+            new() { keys = [modKey, VK.NUM9], command = COMMAND.FOCUS_WORKSPACE_9 },
+
+            // WM commands using ctrl + shift
+            new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.R], command = COMMAND.RESTART },
+            new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.U], command = COMMAND.UPDATE },
+            new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.Q], command = COMMAND.EXIT },
+        };
+    }
 
     public string ToJson()
     {
@@ -83,6 +101,17 @@ public class Config : IJson<Config>
             ["workspaceAnimationsDirection"] = workspaceAnimationsDirection,
             ["floatingWindowSize"] = floatingWindowSize,
             ["serverPort"] = serverPort,
+            ["modKey"] = modKey.ToString(),
+            ["windowBorders"] = new JsonObject()
+            {
+                ["enabled"] = windowBorders.enabled,
+                ["activeBorderColor"] = windowBorders.activeBorderColor is bool b
+                    ? (JsonNode)b
+                    : (JsonNode)(windowBorders.activeBorderColor as string ?? ""),
+                ["inactiveBorderColor"] = windowBorders.inactiveBorderColor is bool ib
+                    ? (JsonNode)ib
+                    : (JsonNode)(windowBorders.inactiveBorderColor as string ?? ""),
+            },
             ["rules"] = new JsonArray(
                 rules
                     .Select(rule => new JsonObject()
@@ -99,7 +128,10 @@ public class Config : IJson<Config>
                     .Select(keymap => new JsonObject()
                     {
                         ["keys"] = new JsonArray(
-                            keymap.keys.Select(key => (JsonNode)key.ToString()).ToArray()
+                            keymap.keys.Select(key =>
+                                // Replace modKey value with "modKey" placeholder in JSON
+                                (JsonNode)(key == modKey ? "modKey" : key.ToString())
+                            ).ToArray()
                         ),
                         ["command"] = keymap.command.ToString(),
                         ["arguments"] = new JsonArray(
@@ -142,6 +174,62 @@ public class Config : IJson<Config>
         config.floatingWindowSize = node["floatingWindowSize"].ToString();
         config.serverPort = Convert.ToInt32(node["serverPort"].ToString());
 
+        // Parse modKey (optional, defaults to LWIN if not present)
+        if (node["modKey"] != null)
+        {
+            if (Enum.TryParse<VK>(node["modKey"].ToString(), out VK parsedModKey))
+            {
+                config.modKey = parsedModKey;
+            }
+        }
+
+        // Parse window borders configuration (optional, may not exist in old configs)
+        if (node["windowBorders"] != null)
+        {
+            var bordersNode = node["windowBorders"];
+            config.windowBorders = new WindowBorderConfig();
+
+            if (bordersNode["enabled"] != null)
+            {
+                config.windowBorders.enabled =
+                    bordersNode["enabled"]?.GetValue<bool>() ?? true;
+            }
+
+            // Parse activeBorderColor (can be string or bool)
+            if (bordersNode["activeBorderColor"] != null)
+            {
+                var activeColorNode = bordersNode["activeBorderColor"];
+                if (activeColorNode is JsonValue activeVal)
+                {
+                    if (activeVal.TryGetValue<bool>(out bool activeBool))
+                    {
+                        config.windowBorders.activeBorderColor = activeBool;
+                    }
+                    else if (activeVal.TryGetValue<string>(out string? activeStr))
+                    {
+                        config.windowBorders.activeBorderColor = activeStr;
+                    }
+                }
+            }
+
+            // Parse inactiveBorderColor (can be string or bool)
+            if (bordersNode["inactiveBorderColor"] != null)
+            {
+                var inactiveColorNode = bordersNode["inactiveBorderColor"];
+                if (inactiveColorNode is JsonValue inactiveVal)
+                {
+                    if (inactiveVal.TryGetValue<bool>(out bool inactiveBool))
+                    {
+                        config.windowBorders.inactiveBorderColor = inactiveBool;
+                    }
+                    else if (inactiveVal.TryGetValue<string>(out string? inactiveStr))
+                    {
+                        config.windowBorders.inactiveBorderColor = inactiveStr;
+                    }
+                }
+            }
+        }
+
         config.rules = new();
         JsonArray _rules = node["rules"].AsArray();
         _rules
@@ -172,8 +260,17 @@ public class Config : IJson<Config>
                     .ToList()
                     .ForEach(_key =>
                     {
-                        Enum.TryParse<VK>(_key.ToString(), true, out VK vkKey);
-                        keymap.keys.Add(vkKey);
+                        string keyStr = _key.ToString();
+                        // Replace "modKey" placeholder with actual modKey value
+                        if (keyStr.Equals("modKey", StringComparison.OrdinalIgnoreCase))
+                        {
+                            keymap.keys.Add(config.modKey);
+                        }
+                        else
+                        {
+                            Enum.TryParse<VK>(keyStr, true, out VK vkKey);
+                            keymap.keys.Add(vkKey);
+                        }
                     });
                 // command
                 string _command = _keymap["command"].ToString();
@@ -200,4 +297,35 @@ public class WindowRule
     public string method; // equals, contains
     public string identifierType; // windowProcess, windowTitle, windowClass
     public string identifier; // search string
+}
+
+public class WindowBorderConfig
+{
+    public bool enabled = true;
+    public object activeBorderColor = "#00FF00"; // Can be string (hex color) or bool (false to disable)
+    public object inactiveBorderColor = false; // Can be string (hex color) or bool (false to disable)
+
+    /// <summary>
+    /// Gets the active border color as a hex string, or null if disabled
+    /// </summary>
+    public string? GetActiveBorderColor()
+    {
+        if (activeBorderColor is bool enabled && !enabled)
+            return null;
+        if (activeBorderColor is string hexColor)
+            return hexColor;
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the inactive border color as a hex string, or null if disabled
+    /// </summary>
+    public string? GetInactiveBorderColor()
+    {
+        if (inactiveBorderColor is bool enabled && !enabled)
+            return null;
+        if (inactiveBorderColor is string hexColor)
+            return hexColor;
+        return null;
+    }
 }

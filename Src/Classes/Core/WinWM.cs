@@ -210,6 +210,40 @@ public class Window : IWindow, IMoveable
         ToggleAnimation(true);
     }
 
+    public void Restore()
+    {
+        // First show the window if it's hidden (SW_SHOW activates it, unlike SW_SHOWNA)
+        if (!User32.IsWindowVisible(this.hWnd))
+        {
+            User32.ShowWindow(this.hWnd, SHOWWINDOW.SW_SHOW);
+        }
+        // Then restore if it's minimized
+        User32.ShowWindow(this.hWnd, SHOWWINDOW.SW_RESTORE);
+    }
+
+    public void RestoreNoActivate()
+    {
+        // Show the window without activating it (SW_SHOWNA)
+        if (!User32.IsWindowVisible(this.hWnd))
+        {
+            User32.ShowWindow(this.hWnd, SHOWWINDOW.SW_SHOWNA);
+        }
+        // Restore from minimized state without activating (SW_SHOWNOACTIVATE)
+        User32.ShowWindow(this.hWnd, SHOWWINDOW.SW_SHOWNOACTIVATE);
+
+        // Bring window to top of Z-order so it's visible (not in background processes)
+        // Using SWP_NOACTIVATE to prevent focus stealing while ensuring visibility
+        User32.SetWindowPos(
+            this.hWnd,
+            (nint)SWPZORDER.HWND_TOP,
+            0,
+            0,
+            0,
+            0,
+            SETWINDOWPOS.SWP_NOMOVE | SETWINDOWPOS.SWP_NOSIZE | SETWINDOWPOS.SWP_NOACTIVATE | SETWINDOWPOS.SWP_SHOWWINDOW
+        );
+    }
+
     const int FOCUS_RETRIES = 10;
 
     public void Focus()
@@ -293,6 +327,25 @@ public class Window : IWindow, IMoveable
             0,
             REDRAWWINDOW.INVALIDATE | REDRAWWINDOW.ALLCHILDREN | REDRAWWINDOW.UPDATENOW
         );
+    }
+
+    /// <summary>
+    /// Sets the border color of this window (Windows 11+ only)
+    /// </summary>
+    /// <param name="hexColor">Hex color string like "#00FF00"</param>
+    /// <returns>True if successful, false otherwise</returns>
+    public bool SetBorderColor(string hexColor)
+    {
+        return BorderHelper.SetBorderColor(this.hWnd, hexColor);
+    }
+
+    /// <summary>
+    /// Resets the border color to system default
+    /// </summary>
+    /// <returns>True if successful, false otherwise</returns>
+    public bool ResetBorderColor()
+    {
+        return BorderHelper.ResetBorderColor(this.hWnd);
     }
 
     public void SetBottom()
@@ -798,6 +851,9 @@ public class WindowManager : IWindowManager
             workspaces.FirstOrDefault()?.windows.Add(wnd);
         });
         FocusWorkspace(workspaces?.FirstOrDefault()!, "Start()");
+
+        // Apply initial border colors
+        UpdateAllWindowBorders();
     }
 
     public List<Window?> GetVisibleWindows()
@@ -820,6 +876,77 @@ public class WindowManager : IWindowManager
     Window? GetAlreadyStoredWindow(Window wnd)
     {
         return focusedWorkspace?.windows?.FirstOrDefault(_wnd => _wnd == wnd);
+    }
+
+    /// <summary>
+    /// Applies border colors to a window based on its focus state
+    /// </summary>
+    private void ApplyBorderColor(Window wnd, bool isFocused)
+    {
+        // Check if borders are enabled
+        if (!config.windowBorders.enabled)
+            return;
+
+        // Check if Windows 11 support is available (only log once, cached in BorderHelper)
+        if (!BorderHelper.SupportsWindowBorders())
+            return;
+
+        try
+        {
+            if (isFocused)
+            {
+                // Apply active border color
+                string? activeColor = config.windowBorders.GetActiveBorderColor();
+                if (activeColor != null)
+                {
+                    wnd.SetBorderColor(activeColor);
+                }
+                else
+                {
+                    // If active border is disabled (false), reset to default
+                    wnd.ResetBorderColor();
+                }
+            }
+            else
+            {
+                // Apply inactive border color
+                string? inactiveColor = config.windowBorders.GetInactiveBorderColor();
+                if (inactiveColor != null)
+                {
+                    wnd.SetBorderColor(inactiveColor);
+                }
+                else
+                {
+                    // If inactive border is disabled (false), reset to default
+                    wnd.ResetBorderColor();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"Error applying border color to window {wnd.hWnd}: {ex.Message}", ex: ex);
+        }
+    }
+
+    /// <summary>
+    /// Updates borders for all windows in the current workspace based on focus
+    /// </summary>
+    private void UpdateAllWindowBorders()
+    {
+        if (!config.windowBorders.enabled || !BorderHelper.SupportsWindowBorders())
+            return;
+
+        var focusedWnd = focusedWorkspace.focusedWindow;
+
+        // Only update borders for windows in the currently focused workspace
+        foreach (var wnd in focusedWorkspace.windows)
+        {
+            if (wnd == null)
+                continue;
+
+            bool isFocused = wnd == focusedWnd;
+            ApplyBorderColor(wnd, isFocused);
+        }
     }
 
     /* Atomic actions
@@ -883,7 +1010,7 @@ public class WindowManager : IWindowManager
         if (workspaceIndex < 0 || workspaceIndex > workspaces.Count - 1)
             return;
         SuppressEvents(() => FocusWorkspace(workspaces[workspaceIndex]!, "WmPublic"));
-
+        UpdateAllWindowBorders();
         WM_EVENT("FocusWorkspace");
     }
 
@@ -961,7 +1088,7 @@ public class WindowManager : IWindowManager
                 FocusWorkspace(workspaces[next]!);
             }
         });
-
+        UpdateAllWindowBorders();
         WM_EVENT("FocusNextWorkspace");
     }
 
@@ -1027,7 +1154,7 @@ public class WindowManager : IWindowManager
                 FocusWorkspace(workspaces[prev]!);
             }
         });
-
+        UpdateAllWindowBorders();
         WM_EVENT("FocusPreviousWorkspace");
     }
 
@@ -1035,7 +1162,7 @@ public class WindowManager : IWindowManager
     {
         int next = focusedWorkspaceIndex >= workspaces.Count - 1 ? 0 : focusedWorkspaceIndex + 1;
         SuppressEvents(() => ShiftFocusedWindowToWorkspace(next));
-
+        UpdateAllWindowBorders();
         WM_EVENT("ShiftWindowToNextWorkspace");
     }
 
@@ -1043,7 +1170,7 @@ public class WindowManager : IWindowManager
     {
         int prev = focusedWorkspaceIndex <= 0 ? workspaces.Count - 1 : focusedWorkspaceIndex - 1;
         SuppressEvents(() => ShiftFocusedWindowToWorkspace(prev));
-
+        UpdateAllWindowBorders();
         WM_EVENT("ShiftWindowToPreviousWorkspace");
     }
 
@@ -1054,12 +1181,15 @@ public class WindowManager : IWindowManager
             WM_EVENT("CloseFocusedWindow");
         });
 
-    public void FocusAdjacentWindow(EDGE direction) =>
+    public void FocusAdjacentWindow(EDGE direction)
+    {
         SuppressEvents(() =>
         {
             focusedWorkspace.FocusAdjacentWindow(direction);
             WM_EVENT("FocusAdjacentWindow");
         });
+        UpdateAllWindowBorders();
+    }
 
     public void ToggleFloating() =>
         SuppressEvents(() =>
@@ -1082,12 +1212,15 @@ public class WindowManager : IWindowManager
             WM_EVENT("Update");
         });
 
-    public void ShiftFocusedWindowBy(int shiftBy) =>
+    public void ShiftFocusedWindowBy(int shiftBy)
+    {
         SuppressEvents(() =>
         {
             focusedWorkspace.ShiftFocusedWindowBy(shiftBy);
             WM_EVENT("ShiftFocusedWindowBy");
         });
+        UpdateAllWindowBorders();
+    }
 
     /*
      * Window events apparatus
@@ -1280,6 +1413,11 @@ public class WindowManager : IWindowManager
         }
 
         CleanGhostWindows();
+
+        // Apply border color to newly shown window
+        bool isFocused = wnd == focusedWorkspace.focusedWindow;
+        ApplyBorderColor(wnd, isFocused);
+
         WM_EVENT($"WindowShown, wnd: {wnd.title}, hWnd: {wnd.hWnd}, exe: {wnd.exe}");
     }
 
@@ -1467,6 +1605,10 @@ public class WindowManager : IWindowManager
 
         SuppressEvents(() => focusedWorkspace.Update());
         CleanGhostWindows();
+
+        // Update window borders based on focus
+        UpdateAllWindowBorders();
+
         WM_EVENT($"WindowFocused, {wnd.title}, {wnd.hWnd}");
     }
 }

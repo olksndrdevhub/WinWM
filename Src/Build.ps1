@@ -29,6 +29,7 @@ dflat Main.cs `
 	  Classes\Core\State.cs `
 	  Classes\Core\Utils.cs `
 	  Classes\Core\Animation.cs `
+	  Classes\Core\BorderHelper.cs `
 	  Classes\Hooks\Keys.cs `
 	  Classes\Hooks\Mouse.cs `
 	  Classes\Hooks\Windows.cs `
