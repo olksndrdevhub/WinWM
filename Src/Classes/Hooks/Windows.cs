@@ -67,7 +67,7 @@ public class WindowEventsListener : IDisposable
             dt = dwmsEventTime - lastTime;
             lastTime = dwmsEventTime;
 
-            if (Aviyal.DEBUG)
+            if (WinWM.DEBUG)
                 Logger.Log(
                     $"WINEVENT: [{msg}], TITLE: {Utils.GetWindowTitleFromHWND(hWnd)}, {hWnd}, CLASS: {Utils.GetClassNameFromHWND(hWnd)}, dt: {dt}, time: {DateTimeOffset.Now.ToUnixTimeMilliseconds()}"
                 );

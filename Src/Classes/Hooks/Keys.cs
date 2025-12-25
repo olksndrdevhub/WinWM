@@ -77,7 +77,7 @@ public class KeyEventsListener : IDisposable
             :
                 if (!captured.Contains(key) && key != 0)
                     captured.Add(key);
-                if (Aviyal.DEBUG)
+                if (WinWM.DEBUG)
                     Logger.Log<VK>(captured, suffix: $"dt: {dt}");
                 foreach (Keymap keymap in keymaps)
                 {
@@ -93,7 +93,7 @@ public class KeyEventsListener : IDisposable
                         if (!hotkeyPressed)
                         {
                             Task.Run(() => HOTKEY_PRESSED(keymap));
-                            if (Aviyal.DEBUG)
+                            if (WinWM.DEBUG)
                                 Logger.Log("HOTKEY PRESSED");
                         }
                         hotkeyPressed = true;

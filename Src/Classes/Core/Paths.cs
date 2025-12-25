@@ -10,12 +10,12 @@ public class Paths
             Path.GetDirectoryName(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
             )!,
-            "aviyal"
+            "winwm"
         )
         : Path.GetDirectoryName(Environment.ProcessPath)!;
-    public static string configFile = Path.Join(rootDir, "aviyal.json");
+    public static string configFile = Path.Join(rootDir, "winwm.json");
     public static string stateFile = Path.Join(rootDir, "state.json");
-    public static string logFile = Path.Join(rootDir, "aviyal.log");
+    public static string logFile = Path.Join(rootDir, "winwm.log");
 
     public static void CreateIfAbsent()
     {

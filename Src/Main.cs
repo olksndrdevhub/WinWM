@@ -10,10 +10,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-class Aviyal : IDisposable
+class WinWM : IDisposable
 {
     static string version = "0.1.7";
-    static Aviyal? aviyal;
+    static WinWM? winwm;
 
     public static bool DEBUG = false;
 
@@ -26,7 +26,7 @@ class Aviyal : IDisposable
 
     Dictionary<COMMAND, Action> actions { get; }
 
-    public Aviyal(Config config)
+    public WinWM(Config config)
     {
         wm = new(config);
         server = new(config);
@@ -62,6 +62,7 @@ class Aviyal : IDisposable
             { COMMAND.FOCUS_WORKSPACE_9, () => wm.FocusWorkspace(8) },
             { COMMAND.UPDATE, () => wm.Update() },
             { COMMAND.RESTART, () => Restart() },
+            { COMMAND.EXIT, () => Exit() },
         };
 
         // just make all windows reappear if crashes
@@ -245,7 +246,7 @@ class Aviyal : IDisposable
         if (reloadCount == 0)
         {
             File.Delete(Paths.logFile);
-            Logger.Log($"Starting aviyal, time: {DateTimeOffset.Now.ToUnixTimeSeconds()}");
+            Logger.Log($"Starting WinWM, time: {DateTimeOffset.Now.ToUnixTimeSeconds()}");
         }
 
         if (Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length > 1)
@@ -254,7 +255,7 @@ class Aviyal : IDisposable
             return;
         }
 
-        Logger.Log($"Running aviyal instance, reload count: {reloadCount}");
+        Logger.Log($"Running WinWM instance, reload count: {reloadCount}");
 
         Paths.CreateIfAbsent();
 
@@ -283,14 +284,14 @@ class Aviyal : IDisposable
         Shcore.SetProcessDpiAwareness(PROCESS_DPI_AWARENESS.PROCESS_PER_MONITOR_DPI_AWARE);
 
         // collect windows to restore when reloaded (when reloaded all windows will be put to workspace 0)
-        var windows = aviyal?.wm.windows;
-        aviyal?.Dispose();
-        aviyal = new(config);
-        aviyal.wm.initWindows = windows!;
-        aviyal.wm.Start();
+        var windows = winwm?.wm.windows;
+        winwm?.Dispose();
+        winwm = new(config);
+        winwm.wm.initWindows = windows!;
+        winwm.wm.Start();
         // do NOT attach the event handlers before wm has started. Window events before initialization
         // can case race conditions and collection modifications in wm.Start()
-        aviyal.AttachEventHandlers();
+        winwm.AttachEventHandlers();
     }
 
     static bool errored = false;
@@ -312,6 +313,30 @@ class Aviyal : IDisposable
     }
 
     static void Restart() => running = false;
+
+    static void Exit()
+    {
+        Logger.Log("Exit command received, shutting down WinWM...");
+
+        // Show all managed windows before exiting
+        int windowCount = 0;
+        winwm?.wm.workspaces.ForEach(wksp =>
+            wksp?.windows.ForEach(wnd =>
+            {
+                wnd?.Show();
+                windowCount++;
+            })
+        );
+        Logger.Log($"Restored {windowCount} windows before exit");
+
+        // Cleanup and dispose
+        winwm?.Dispose();
+
+        Logger.Log("WinWM shutdown complete");
+
+        // Force exit the process (terminates all threads)
+        Environment.Exit(0);
+    }
 
     static void Restore(string? file = null)
     {
@@ -367,7 +392,7 @@ as an administrator or from an elevated prompt.
                 WithConsole(() => Loop());
                 break;
             case "--version":
-                WithConsole(() => Console.WriteLine($"Aviyal version: {version}"));
+                WithConsole(() => Console.WriteLine($"WinWM version: {version}"));
                 break;
             case "--help":
                 WithConsole(() =>
@@ -375,7 +400,7 @@ as an administrator or from an elevated prompt.
                     Console.WriteLine(
                         @"
 ,_______________________________,
-|   Aviyal Window Manager |__|__|
+|   WinWM Window Manager |__|__|
 |___ver_0.1.0-alpha_______|__|__|
 |Author:  Ajaykrishnan.R  |\/ \/|
 |/\/\/\/\/\/\/\/\/\/\/\/\/|/\_/\|
@@ -383,12 +408,12 @@ as an administrator or from an elevated prompt.
 |////////////////////////////////
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-Aviyal is a window manager that dynamically tiles your windows, organizes them inside workspaces, allows navigation through keybindings, and more :)
+WinWM is a window manager that dynamically tiles your windows, organizes them inside workspaces, allows navigation through keybindings, and more :)
 
-aviyal: https://github.com/TheAjaykrishnanR/aviyal
+Original project (aviyal): https://github.com/TheAjaykrishnanR/aviyal
 dflat: https://github.com/TheAjaykrishnanR/dflat
 
-USAGE: aviyal <options> <arguments>
+USAGE: winwm <options> <arguments>
 
 available options:
 
@@ -440,4 +465,5 @@ public enum COMMAND
 
     RESTART,
     UPDATE,
+    EXIT,
 }

@@ -5,3 +5,5 @@ obj/
 *.obj
 *.pdb
 *.sln
+CLAUDE.md
+.claude/

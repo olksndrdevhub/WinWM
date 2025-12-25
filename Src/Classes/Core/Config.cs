@@ -64,6 +64,7 @@ public class Config : IJson<Config>
         new() { keys = [VK.LMENU, VK.NUM9], command = COMMAND.FOCUS_WORKSPACE_9 },
         new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.R], command = COMMAND.RESTART },
         new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.U], command = COMMAND.UPDATE },
+        new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.Q], command = COMMAND.EXIT },
     };
 
     public string ToJson()
@@ -77,9 +78,9 @@ public class Config : IJson<Config>
             ["bottom"] = bottom,
             ["inner"] = inner,
             ["workspaces"] = workspaces,
-            ["workspaceAnimations"] = workspaceAnimations.ToString(),
-            ["workspaceAnimationsDuration"] = workspaceAnimationsDuration.ToString(),
-            ["workspaceAnimationsDirection"] = workspaceAnimationsDirection.ToString(),
+            ["workspaceAnimations"] = workspaceAnimations,
+            ["workspaceAnimationsDuration"] = workspaceAnimationsDuration,
+            ["workspaceAnimationsDirection"] = workspaceAnimationsDirection,
             ["floatingWindowSize"] = floatingWindowSize,
             ["serverPort"] = serverPort,
             ["rules"] = new JsonArray(
@@ -123,11 +124,17 @@ public class Config : IJson<Config>
         config.right = Convert.ToInt32(node["right"].ToString());
         config.bottom = Convert.ToInt32(node["bottom"].ToString());
         config.workspaces = Convert.ToInt32(node["workspaces"].ToString());
-        config.workspaceAnimations = node["workspaceAnimations"].ToString() switch
+        // Handle both boolean and string formats (for backwards compatibility)
+        var workspaceAnimNode = node["workspaceAnimations"];
+        if (workspaceAnimNode is JsonValue jsonValue && jsonValue.TryGetValue<bool>(out bool boolValue))
         {
-            "true" => true,
-            "false" => false,
-        };
+            config.workspaceAnimations = boolValue;
+        }
+        else
+        {
+            // Fallback to string parsing (handles "true"/"True"/"false"/"False")
+            config.workspaceAnimations = workspaceAnimNode.ToString().ToLower() == "true";
+        }
         config.workspaceAnimationsDuration = Convert.ToInt32(
             node["workspaceAnimationsDuration"].ToString()
         );

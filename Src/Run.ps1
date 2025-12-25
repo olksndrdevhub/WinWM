@@ -1,2 +1,2 @@
 ./Build.ps1
-./bin/aviyal.exe
+./bin/winwm.exe

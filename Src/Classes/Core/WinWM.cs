@@ -117,7 +117,7 @@ public class Window : IWindow, IMoveable
     }
 
     /* whether the window process is relatively higher in process integrity than
-     * aviyal.
+     * winwm.
      * */
     public bool elevated
     {
@@ -772,7 +772,7 @@ public class WindowManager : IWindowManager
          * --debug flag will be managed by the program. This is so that your ide or
          * terminal is left free while testing
          * */
-        if (Aviyal.DEBUG && DEBUG_WND_NAME != null)
+        if (WinWM.DEBUG && DEBUG_WND_NAME != null)
         {
             Logger.Log($"DebugWndName: {DEBUG_WND_NAME}");
             this.initWindows = this
@@ -1127,7 +1127,7 @@ public class WindowManager : IWindowManager
     {
         bool IgnoreWindow(string reason)
         {
-            if (Aviyal.DEBUG)
+            if (WinWM.DEBUG)
                 Logger.Log($"Ignoring wnd, [{wnd.title}, {wnd.className}] due to: {reason}");
             return true;
         }
@@ -1430,7 +1430,7 @@ public class WindowManager : IWindowManager
         {
             lasRestoredhWnd = wnd.hWnd;
             lastRestoreTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-            if (Aviyal.DEBUG)
+            if (WinWM.DEBUG)
                 Logger.Log($"ignore window restore, {wnd.title}, {wnd.hWnd}");
             return;
         }

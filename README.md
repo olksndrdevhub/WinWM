@@ -1,8 +1,8 @@
-# Aviyal
+# WinWM
 
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/TheAjaykrishnanR/aviyal/total?color=green)
+> Window manager for Windows written purely in C# that's simple, lightweight and portable.
 
-> Window manager for windows written purely in C# thats simple, lightweight and portable.
+This is a fork of [Aviyal](https://github.com/TheAjaykrishnanR/aviyal) - a dynamic tiling window manager for Windows.
 
 ![showcase_1](https://github.com/TheAjaykrishnanR/aviyal/blob/master/Imgs/showcase.png)
 
@@ -21,15 +21,15 @@
 
 ## Usage
 
-Download the latest release from [releases](https://github.com/TheAjaykrishnanR/aviyal/releases) and run it. 
+Build from source (see Building section below) and run the executable.
 For live debug output, run from a terminal (`cmd.exe` or `pwsh.exe`).
 
 ## Configuration
 
-Configuration file `aviyal.json` will be created at first run. You can modify the default settings there,
-including adding new keybindings etc. Look at the example config file [here](https://github.com/TheAjaykrishnanR/aviyal/blob/master/Src/aviyal.json)
+Configuration file `winwm.json` will be created at first run. You can modify the default settings there,
+including adding new keybindings etc. Look at the example config file in `Src/winwm.json`
 
-A quick summary of the values available for each key in the config is [here](https://github.com/TheAjaykrishnanR/aviyal/blob/master/Docs/Config.md)
+For the original project's config documentation, see [Aviyal Config.md](https://github.com/TheAjaykrishnanR/aviyal/blob/master/Docs/Config.md)
 ## Default keybindings
 
 - `FOCUS NEXT WORKSPACE`: `LCONTROL, LSHIFT, L`
@@ -46,33 +46,34 @@ A quick summary of the values available for each key in the config is [here](htt
 - `SWAP WINDOW LEFT`: `LMENU (ALT), H`
 - `RESTART APPLICATION`: `LCONTROL, LSHIFT, R` (hot reload for config)
 - `REFRESH TILING`: `LCONTROL, LSHIFT, U`
+- `EXIT WINWM`: `LCONTROL, LSHIFT, Q`
 
 By default `9` workspaces are initialized.
 
 ## Building
 
-Aviyal is built using a custom C# Aot compiler called as [dflat](https://github.com/TheAjaykrishnanR/dflat)
+WinWM can be built using a custom C# AOT compiler called [dflat](https://github.com/TheAjaykrishnanR/dflat)
 If you have `dflat` in path, building is as simple as:
 
 ```
-git clone https://github.com/TheAjaykrishnanR/aviyal
-cd aviyal/Src
+git clone <your-repo-url>
+cd WinWM/Src
 ./Build.ps1
 ```
 
-You will find the aot compiled executable at `bin\aviyal.exe`
+You will find the AOT compiled executable at `bin\winwm.exe`
 
 For development ease, such as LSP a dotnet `csproj` file is also provided which allows language
-support in neovim by roslyn. This allows you to build aviyal just like any other dotnet application.
+support in IDEs. This allows you to build WinWM just like any other dotnet application.
 
-If thats what you prefer, build it as:
+If that's what you prefer, build it as:
 ```
-git clone https://github.com/TheAjaykrishnanR/aviyal
-cd aviyal/Src
+git clone <your-repo-url>
+cd WinWM/Src
 dotnet build
 ```
 
-You can find the executable at `bin\Debug\net*\win-x64`
+You can find the executable at `bin\Debug\net9.0-windows\`
 
 ## Contributing
 
