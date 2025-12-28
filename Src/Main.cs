@@ -51,7 +51,9 @@ class WinWM : IDisposable
                 () => wm.ShiftFocusedWindowToPreviousWorkspace()
             },
             { COMMAND.TOGGLE_FLOATING_WINDOW, () => wm.ToggleFloating() },
-            { COMMAND.TOGGLE_STACKED_WINDOW, () => wm.ToggleStacked() },
+            { COMMAND.TOGGLE_FULLSCREEN_WINDOW, () => wm.ToggleFullscreen() },
+            { COMMAND.TOGGLE_WORKSPACE_LAYOUT, () => wm.ToggleWorkspaceLayout() },
+            { COMMAND.SWAP_WITH_MASTER, () => wm.SwapWithMaster() },
             { COMMAND.FOCUS_WORKSPACE_1, () => wm.FocusWorkspace(0) },
             { COMMAND.FOCUS_WORKSPACE_2, () => wm.FocusWorkspace(1) },
             { COMMAND.FOCUS_WORKSPACE_3, () => wm.FocusWorkspace(2) },
@@ -501,7 +503,9 @@ public enum COMMAND
     SHIFT_WINDOW_PREVIOUS_WORKSPACE,
 
     TOGGLE_FLOATING_WINDOW,
-    TOGGLE_STACKED_WINDOW,
+    TOGGLE_FULLSCREEN_WINDOW,
+    TOGGLE_WORKSPACE_LAYOUT,
+    SWAP_WITH_MASTER,
 
     EXEC,
 

@@ -223,6 +223,72 @@ public class Stack : ILayout
     }
 }
 
+/// <summary>
+/// Tabbed layout - all windows fullscreen, cyclic navigation like browser tabs
+/// </summary>
+public class Tabbed : ILayout
+{
+    public int inner { get; set; }
+    public int left { get; set; }
+    public int top { get; set; }
+    public int right { get; set; }
+    public int bottom { get; set; }
+
+    int width;
+    int height;
+
+    public Tabbed(Config config)
+    {
+        inner = config.inner;
+        left = config.left;
+        top = config.top;
+        right = config.right;
+        bottom = config.bottom;
+        (width, height) = Utils.GetScreenSize();
+    }
+
+    public RECT[] GetRects(int count)
+    {
+        // All windows get same fullscreen rect
+        RECT[] rects = new RECT[count];
+        for (int i = 0; i < count; i++)
+        {
+            rects[i] = new()
+            {
+                Left = 0,
+                Top = 0,
+                Right = width,
+                Bottom = height,
+            };
+        }
+        return rects;
+    }
+
+    public int? GetAdjacent(int index, EDGE direction)
+    {
+        // Tabbed mode navigation is handled by workspace's FocusAdjacentWindowTabbed
+        return null;
+    }
+
+    public RECT[] ApplyOuter(RECT[] rects)
+    {
+        for (int i = 0; i < rects.Length; i++)
+        {
+            rects[i].Left += left;
+            rects[i].Right -= right;
+            rects[i].Top += top;
+            rects[i].Bottom -= bottom;
+        }
+        return rects;
+    }
+
+    public RECT[] ApplyInner(RECT[] rects)
+    {
+        // No inner spacing for tabbed mode
+        return rects;
+    }
+}
+
 public enum EDGE
 {
     LEFT,

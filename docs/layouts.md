@@ -81,20 +81,56 @@ After changing the layout, press `Ctrl + Shift + R` to reload the configuration.
 }
 ```
 
-**Stack-specific commands:**
-- `TOGGLE_STACKED_WINDOW` (`Alt + S`) - Swap stacked window with master
+**Note:** Use `SWAP_WITH_MASTER` (`Mod + S`) to swap the focused window with the master window on the left side.
+
+---
+
+### Tabbed Layout
+
+**Browser-like tabs** - All windows displayed fullscreen, navigate like browser tabs with wraparound.
+
+```
+┌──────────────────┐
+│                  │
+│   Window 1       │
+│  (Fullscreen)    │
+│                  │
+└──────────────────┘
+```
+
+**How it works:**
+- All windows are displayed fullscreen, one at a time
+- Navigate between windows using arrow keys
+- Left/Up arrow keys cycle to the previous window
+- Right/Down arrow keys cycle to the next window
+- Navigation wraps around (last window loops back to first)
+- Only one window visible at a time, maximizing screen real estate
+
+**Best for:**
+- Single-task focus with occasional reference checking
+- Maximizing visible area for one application
+- Workflows that benefit from full-screen focus
+
+**Configure:**
+```json
+{
+  "layout": "tabbed"
+}
+```
+
+**Note:** Can be toggled per-workspace with `Mod + Shift + T` to temporarily switch to tabbed view.
 
 ---
 
 ## Layout Comparison
 
-| Feature | Dwindle | Stack |
-|---------|---------|-------|
-| **Focus** | Balanced | One primary window |
-| **Screen usage** | Even split | Master gets most space |
-| **Windows** | All equal importance | Master + helpers |
-| **Best for** | Multitasking | Single-task focus |
-| **Typical use** | Research, comparison | Coding, writing |
+| Feature | Dwindle | Stack | Tabbed |
+|---------|---------|-------|--------|
+| **Focus** | Balanced | One primary window | Single window at a time |
+| **Screen usage** | Even split | Master gets most space | Full screen per window |
+| **Windows** | All equal importance | Master + helpers | Hidden until selected |
+| **Best for** | Multitasking | Single-task focus | Deep focus work |
+| **Typical use** | Research, comparison | Coding, writing | Full-screen applications |
 
 ---
 
@@ -131,6 +167,12 @@ After changing the layout, press `Ctrl + Shift + R` to reload the configuration.
 - Write code with reference documentation open
 - Want a primary window to dominate the screen
 - Prefer IDE-like workspace organization
+
+### Use **Tabbed** if you:
+- Need deep focus on a single task
+- Work with applications that benefit from full-screen view
+- Prefer minimal distractions while maintaining window access
+- Like browser-style tab navigation for quick switching
 
 ---
 

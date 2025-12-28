@@ -7,6 +7,9 @@ public class Config : IJson<Config>
 {
     public string layout { get; set; } = "dwindle";
 
+    // Per-workspace layout configuration (key = workspace index, value = layout name)
+    public Dictionary<int, string> workspaceLayouts { get; set; } = new();
+
     // margins
     public int left { get; set; } = 5;
     public int top { get; set; } = 5;
@@ -67,8 +70,14 @@ public class Config : IJson<Config>
             // Toggle floating with mod + F
             new() { keys = [modKey, VK.F], command = COMMAND.TOGGLE_FLOATING_WINDOW },
 
-            // Toggle stacked window with mod + S
-            new() { keys = [modKey, VK.S], command = COMMAND.TOGGLE_STACKED_WINDOW },
+            // Toggle fullscreen window with mod + shift + F
+            new() { keys = [modKey, VK.LSHIFT, VK.F], command = COMMAND.TOGGLE_FULLSCREEN_WINDOW },
+
+            // Swap with master window (stack layout only) with mod + S
+            new() { keys = [modKey, VK.S], command = COMMAND.SWAP_WITH_MASTER },
+
+            // Toggle workspace layout (tabbed ↔ default) with mod + shift + T
+            new() { keys = [modKey, VK.LSHIFT, VK.T], command = COMMAND.TOGGLE_WORKSPACE_LAYOUT },
 
             // Jump to numbered workspace using mod + number
             new() { keys = [modKey, VK.NUM1], command = COMMAND.FOCUS_WORKSPACE_1 },
@@ -93,6 +102,11 @@ public class Config : IJson<Config>
         JsonObject j = new()
         {
             ["layout"] = layout,
+            ["workspaceLayouts"] = new JsonObject(
+                workspaceLayouts.Select(kvp =>
+                    new KeyValuePair<string, JsonNode?>(kvp.Key.ToString(), kvp.Value)
+                )
+            ),
             ["left"] = left,
             ["top"] = top,
             ["right"] = right,
@@ -183,6 +197,18 @@ public class Config : IJson<Config>
             if (Enum.TryParse<VK>(node["modKey"].ToString(), out VK parsedModKey))
             {
                 config.modKey = parsedModKey;
+            }
+        }
+
+        // Parse workspaceLayouts (optional, may not exist in old configs)
+        if (node["workspaceLayouts"] != null)
+        {
+            var layoutsNode = node["workspaceLayouts"].AsObject();
+            foreach (var kvp in layoutsNode)
+            {
+                int workspaceIndex = Convert.ToInt32(kvp.Key);
+                string layoutName = kvp.Value?.ToString() ?? "dwindle";
+                config.workspaceLayouts[workspaceIndex] = layoutName;
             }
         }
 

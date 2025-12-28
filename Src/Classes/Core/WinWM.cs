@@ -463,6 +463,9 @@ public class Workspace : IWorkspace, IMoveable
         }
     }
     public ILayout layout { get; set; }
+    public string layoutName { get; set; } = "dwindle"; // Track current layout name
+    public string defaultLayoutName { get; set; } = "dwindle"; // For toggle functionality
+    public int workspaceIndex { get; set; } // Track which workspace this is
 
     public override bool Equals(object? obj)
     {
@@ -549,10 +552,41 @@ public class Workspace : IWorkspace, IMoveable
 
         RECT[] relRects = layout.GetRects(wndsToTile.Count);
         RECT[] rects = layout.ApplyInner(layout.ApplyOuter(relRects.ToArray()));
-        for (int i = 0; i < wndsToTile.Count; i++)
+
+        // Special handling for tabbed layout
+        if (layout is Tabbed)
         {
-            wndsToTile[i]?.Move(rects[i]);
-            wndsToTile[i]!.relRect = relRects[i];
+            // Position ALL windows to fullscreen first (even hidden ones)
+            // This ensures they're ready to show when focused
+            for (int i = 0; i < wndsToTile.Count; i++)
+            {
+                wndsToTile[i]?.Move(rects[i]);
+                wndsToTile[i]!.relRect = relRects[i];
+            }
+
+            // Then handle visibility - show only focused window, hide others
+            // Note: focusedWindow is from the full windows list, so we need to check equality
+            Window? focused = focusedWindow;
+            for (int i = 0; i < wndsToTile.Count; i++)
+            {
+                if (wndsToTile[i] == focused)
+                {
+                    wndsToTile[i]?.Show();
+                }
+                else
+                {
+                    wndsToTile[i]?.Hide();
+                }
+            }
+        }
+        else
+        {
+            // Original tiling logic for other layouts
+            for (int i = 0; i < wndsToTile.Count; i++)
+            {
+                wndsToTile[i]?.Move(rects[i]);
+                wndsToTile[i]!.relRect = relRects[i];
+            }
         }
 
         /* set the relRects of floating windows as their absolute position,
@@ -568,13 +602,13 @@ public class Workspace : IWorkspace, IMoveable
             floatingWnds[i]!.relRect = floatingWnds[i]!.rect;
         }
 
-        /* windows to stack (in non stacked layouts)
+        /* windows to fullscreen (in non-fullscreen layouts)
          * */
-        List<Window?> wndsToStack = workableWindows
-            .Where(wnd => wnd?.nonTiledState == NONTILEDSTATE.STACKED)
+        List<Window?> wndsToFullscreen = workableWindows
+            .Where(wnd => wnd?.nonTiledState == NONTILEDSTATE.FULLSCREEN)
             .ToList();
         (int sw, int sh) = Utils.GetScreenSize();
-        for (int i = 0; i < wndsToStack.Count; i++)
+        for (int i = 0; i < wndsToFullscreen.Count; i++)
         {
             RECT rect = new()
             {
@@ -583,14 +617,32 @@ public class Workspace : IWorkspace, IMoveable
                 Right = sw - config.right,
                 Bottom = sh - config.bottom,
             };
-            wndsToStack[i]?.Move(rect);
-            wndsToStack[i]!.relRect = rect;
+            wndsToFullscreen[i]?.Move(rect);
+            wndsToFullscreen[i]!.relRect = rect;
         }
     }
 
     public void Show()
     {
-        windows?.ForEach(wnd => wnd?.Show());
+        // In tabbed layout, only show the focused window
+        if (layout is Tabbed)
+        {
+            // Show only the focused window, keep others hidden
+            Window? focused = focusedWindow;
+            foreach (var wnd in windows)
+            {
+                if (wnd == focused)
+                {
+                    wnd?.Show();
+                }
+                // Don't explicitly hide here - Update() handles that
+            }
+        }
+        else
+        {
+            // For other layouts, show all windows
+            windows?.ForEach(wnd => wnd?.Show());
+        }
     }
 
     public void Hide()
@@ -677,9 +729,42 @@ public class Workspace : IWorkspace, IMoveable
     {
         if (focusedWindowIndex == null)
             return;
+
+        // Check if using tabbed layout
+        if (layout is Tabbed)
+        {
+            FocusAdjacentWindowTabbed(direction);
+            return;
+        }
+
+        // Original logic for other layouts
         int? index = layout.GetAdjacent((int)focusedWindowIndex, direction);
         if (index != null)
             windows?[(int)index]?.Focus();
+    }
+
+    public void FocusAdjacentWindowTabbed(EDGE direction)
+    {
+        if (focusedWindowIndex == null)
+            return;
+
+        int count = windows.Count;
+        if (count == 0) return;
+
+        int currentIndex = (int)focusedWindowIndex;
+        int nextIndex;
+
+        if (direction == EDGE.LEFT || direction == EDGE.TOP)
+            nextIndex = (currentIndex - 1 + count) % count; // Wrap backwards
+        else
+            nextIndex = (currentIndex + 1) % count; // Wrap forwards
+
+        // Focus the next window first (this updates focusedWindowIndex)
+        windows[nextIndex]?.Focus();
+
+        // Then call Update() which will handle show/hide based on new focus
+        // Update() will position all windows and show only the focused one
+        Update();
     }
 
     // changes the order of windows in the workspace
@@ -695,6 +780,25 @@ public class Workspace : IWorkspace, IMoveable
         windows.Remove(_fwnd);
         windows.Insert((int)index, _fwnd);
         Update();
+    }
+
+    public void SwapWithMaster()
+    {
+        // Only applicable in stack layout
+        if (!(layout is Stack))
+            return;
+
+        Window? _fwnd = focusedWindow;
+        int? index = focusedWindowIndex;
+        if (index == null || index == 0)
+            return; // Already master or no window focused
+
+        // Swap focused window with master (index 0)
+        Window? master = windows[0];
+        windows[0] = _fwnd;
+        windows[(int)index] = master;
+        Update();
+        _fwnd?.Focus();
     }
 
     public void MakeFloating(Window wnd)
@@ -718,8 +822,8 @@ public class Workspace : IWorkspace, IMoveable
         Update();
     }
 
-    // only one stacked window in a workspace
-    private Window? stackedWnd
+    // only one fullscreen window in a workspace
+    private Window? fullscreenWnd
     {
         get
         {
@@ -730,41 +834,42 @@ public class Workspace : IWorkspace, IMoveable
         set;
     }
 
-    public void ToggleStacked(Window? wnd = null)
+    public void ToggleFullscreen(Window? wnd = null)
     {
-        if (config.layout == "stack")
+        // Not applicable in stack or tabbed layouts
+        if (layout is Stack || layout is Tabbed)
             return;
         wnd ??= focusedWindow;
         if (wnd == null)
             windows.ForEach(_wnd =>
             {
-                if (_wnd!.nonTiledState == NONTILEDSTATE.STACKED)
+                if (_wnd!.nonTiledState == NONTILEDSTATE.FULLSCREEN)
                     _wnd!.nonTiledState = NONTILEDSTATE.NONE;
             });
         else
         {
-            if (stackedWnd == null)
+            if (fullscreenWnd == null)
             {
                 wnd.nonTiledState =
-                    wnd.nonTiledState != NONTILEDSTATE.STACKED
-                        ? NONTILEDSTATE.STACKED
+                    wnd.nonTiledState != NONTILEDSTATE.FULLSCREEN
+                        ? NONTILEDSTATE.FULLSCREEN
                         : NONTILEDSTATE.NONE;
                 windows
                     .Where(_wnd => _wnd != wnd)
                     .ToList()
                     .ForEach(_wnd =>
                     {
-                        if (_wnd!.nonTiledState == NONTILEDSTATE.STACKED)
+                        if (_wnd!.nonTiledState == NONTILEDSTATE.FULLSCREEN)
                             _wnd!.nonTiledState = NONTILEDSTATE.NONE;
                     });
-                stackedWnd = wnd;
+                fullscreenWnd = wnd;
             }
             else
             {
-                // if there alread is a stacked window, unstack it instead of
-                // making the provided window stacked
-                stackedWnd.nonTiledState = NONTILEDSTATE.NONE;
-                stackedWnd = null;
+                // if there already is a fullscreen window, un-fullscreen it instead of
+                // making the provided window fullscreen
+                fullscreenWnd.nonTiledState = NONTILEDSTATE.NONE;
+                fullscreenWnd = null;
             }
         }
         Update();
@@ -849,6 +954,17 @@ public class WindowManager : IWindowManager
         this.config = config;
     }
 
+    private ILayout CreateLayout(string layoutName, Config config)
+    {
+        return layoutName switch
+        {
+            "dwindle" => new Dwindle(config),
+            "stack" => new Stack(config),
+            "tabbed" => new Tabbed(config),
+            _ => new Dwindle(config),
+        };
+    }
+
     public void Start()
     {
         if (initWindows == null)
@@ -873,12 +989,17 @@ public class WindowManager : IWindowManager
         for (int i = 0; i < this.config.workspaces; i++)
         {
             Workspace wksp = new(config);
-            wksp.layout = config.layout switch
-            {
-                "dwindle" => new Dwindle(config),
-                "stack" => new Stack(config),
-                _ => new Dwindle(config),
-            };
+            wksp.workspaceIndex = i;
+
+            // Check if workspace has specific layout configured
+            string layoutName = config.workspaceLayouts.ContainsKey(i)
+                ? config.workspaceLayouts[i]
+                : config.layout;
+
+            wksp.defaultLayoutName = layoutName;
+            wksp.layoutName = layoutName;
+            wksp.layout = CreateLayout(layoutName, config);
+
             workspaces.Add(wksp);
         }
         // add all windows to 1st workspace
@@ -1242,12 +1363,49 @@ public class WindowManager : IWindowManager
             WM_EVENT("ToggleFloating");
         });
 
-    public void ToggleStacked() =>
+    public void ToggleFullscreen() =>
         SuppressEvents(() =>
         {
-            focusedWorkspace.ToggleStacked();
-            WM_EVENT("ToggleStack");
+            focusedWorkspace.ToggleFullscreen();
+            WM_EVENT("ToggleFullscreen");
         });
+
+    public void ToggleWorkspaceLayout()
+    {
+        SuppressEvents(() =>
+        {
+            string currentLayout = focusedWorkspace.layoutName;
+            string newLayout;
+
+            if (currentLayout == "tabbed")
+            {
+                // Switch back to default layout
+                newLayout = focusedWorkspace.defaultLayoutName;
+            }
+            else
+            {
+                // Switch to tabbed
+                newLayout = "tabbed";
+            }
+
+            focusedWorkspace.layoutName = newLayout;
+            focusedWorkspace.layout = CreateLayout(newLayout, config);
+            focusedWorkspace.Update();
+
+            WM_EVENT("ToggleWorkspaceLayout");
+        });
+        UpdateAllWindowBorders();
+    }
+
+    public void SwapWithMaster()
+    {
+        SuppressEvents(() =>
+        {
+            focusedWorkspace.SwapWithMaster();
+            WM_EVENT("SwapWithMaster");
+        });
+        UpdateAllWindowBorders();
+    }
 
     public void Update() =>
         SuppressEvents(() =>
@@ -1668,5 +1826,5 @@ public enum NONTILEDSTATE
 {
     NONE,
     FLOATING,
-    STACKED,
+    FULLSCREEN,
 }

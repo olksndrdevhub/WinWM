@@ -264,7 +264,9 @@ All commands from [Commands Reference](commands.md) can be sent via IPC:
 ### Window Actions
 - `CLOSE_FOCUSED_WINDOW`
 - `TOGGLE_FLOATING_WINDOW`
-- `TOGGLE_STACKED_WINDOW`
+- `TOGGLE_FULLSCREEN_WINDOW`
+- `SWAP_WITH_MASTER`
+- `TOGGLE_WORKSPACE_LAYOUT`
 
 ### WinWM Control
 - `RESTART`

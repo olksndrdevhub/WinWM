@@ -96,10 +96,26 @@ Toggle floating mode for the focused window. Floating windows are not tiled and 
 
 **Default binding:** `Mod + F`
 
-### `TOGGLE_STACKED_WINDOW`
-Toggle stacked mode for the focused window. Only applicable in stack layout.
+### `TOGGLE_FULLSCREEN_WINDOW`
+Toggle fullscreen mode for the focused window. Makes the window fill the entire screen (respecting outer margins) independent of the layout.
 
-**Default binding:** `Mod + S` (Alt + S by default)
+**Default binding:** `Mod + Shift + F`
+
+**Behavior:** Only one fullscreen window is allowed per workspace. Toggling fullscreen on another window will un-fullscreen the previous one. Not applicable in stack or tabbed layouts.
+
+### `SWAP_WITH_MASTER`
+Swap the focused window with the master window in stack layout.
+
+**Default binding:** `Mod + S`
+
+**Behavior:** Only works in stack layout. The master window is at index 0 (left side). Does nothing if the focused window is already the master or if not in stack layout.
+
+### `TOGGLE_WORKSPACE_LAYOUT`
+Toggle the workspace between its default layout and tabbed layout.
+
+**Default binding:** `Mod + Shift + T`
+
+**Behavior:** If currently in tabbed mode, switches back to the workspace's default layout. Otherwise, switches to tabbed mode.
 
 ---
 

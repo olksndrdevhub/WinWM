@@ -139,8 +139,18 @@
       "arguments": []
     },
     {
-      "keys": ["LCONTROL", "LSHIFT", "S"],
-      "command": "TOGGLE_STACKED_WINDOW",
+      "keys": ["modKey", "LSHIFT", "F"],
+      "command": "TOGGLE_FULLSCREEN_WINDOW",
+      "arguments": []
+    },
+    {
+      "keys": ["modKey", "S"],
+      "command": "SWAP_WITH_MASTER",
+      "arguments": []
+    },
+    {
+      "keys": ["modKey", "LSHIFT", "T"],
+      "command": "TOGGLE_WORKSPACE_LAYOUT",
       "arguments": []
     },
 
