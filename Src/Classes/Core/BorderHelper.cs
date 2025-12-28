@@ -86,6 +86,12 @@ public static class BorderHelper
             return false;
         }
 
+        // Validate window handle before attempting to set border
+        if (!User32.IsWindow(hWnd))
+        {
+            return false;
+        }
+
         try
         {
             // Convert hex to COLORREF
@@ -124,6 +130,12 @@ public static class BorderHelper
     public static bool ResetBorderColor(nint hWnd)
     {
         if (!SupportsWindowBorders())
+        {
+            return false;
+        }
+
+        // Validate window handle before attempting to reset border
+        if (!User32.IsWindow(hWnd))
         {
             return false;
         }

@@ -61,6 +61,9 @@ public class Config : IJson<Config>
             // Close window with mod + Q
             new() { keys = [modKey, VK.Q], command = COMMAND.CLOSE_FOCUSED_WINDOW },
 
+            // Minimize window with mod + M
+            new() { keys = [modKey, VK.M], command = COMMAND.MINIMIZE_FOCUSED_WINDOW },
+
             // Toggle floating with mod + F
             new() { keys = [modKey, VK.F], command = COMMAND.TOGGLE_FLOATING_WINDOW },
 

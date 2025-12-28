@@ -91,6 +91,7 @@ See [docs/configuration.md](docs/configuration.md) for complete details.
 
 **Window Actions**:
 - `CLOSE FOCUSED WINDOW`: `Mod + Q`
+- `MINIMIZE FOCUSED WINDOW`: `Mod + M`
 - `TOGGLE WINDOW FLOATING`: `Mod + F`
 - `TOGGLE WINDOW STACKED`: `Ctrl + Shift + S`
 

@@ -16,6 +16,7 @@
   - IPC/WebSocket documentation
   - Fully commented default config example
 - Improved exit behavior: Windows from workspace 1 stay visible, others minimized to taskbar
+- Added `MINIMIZE_FOCUSED_WINDOW` command with default keybinding (Alt + M)
 
 # Old (based on Aviyal v0.1.7-fix2)
 - Fixed window reorders after waking up from hibernation

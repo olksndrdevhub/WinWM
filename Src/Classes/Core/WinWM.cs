@@ -210,6 +210,13 @@ public class Window : IWindow, IMoveable
         ToggleAnimation(true);
     }
 
+    public void Minimize()
+    {
+        ToggleAnimation(false);
+        User32.ShowWindow(this.hWnd, SHOWWINDOW.SW_MINIMIZE);
+        ToggleAnimation(true);
+    }
+
     public void Restore()
     {
         // First show the window if it's hidden (SW_SHOW activates it, unlike SW_SHOWNA)
@@ -633,6 +640,18 @@ public class Workspace : IWorkspace, IMoveable
         focusedWindow?.Close();
         windows.ElementAtOrDefault((int)toFocus)?.Focus();
         windows.Remove(fWnd);
+        Update();
+    }
+
+    public void MinimizeFocusedWindow()
+    {
+        Window? fWnd = focusedWindow;
+        int? index = focusedWindowIndex;
+        if (index == null)
+            return;
+        int? toFocus = index > 0 ? index - 1 : 0;
+        fWnd?.Minimize();
+        windows.ElementAtOrDefault((int)toFocus)?.Focus();
         Update();
     }
 
@@ -1179,6 +1198,13 @@ public class WindowManager : IWindowManager
         {
             focusedWorkspace.CloseFocusedWindow();
             WM_EVENT("CloseFocusedWindow");
+        });
+
+    public void MinimizeFocusedWindow() =>
+        SuppressEvents(() =>
+        {
+            focusedWorkspace.MinimizeFocusedWindow();
+            WM_EVENT("MinimizeFocusedWindow");
         });
 
     public void FocusAdjacentWindow(EDGE direction)

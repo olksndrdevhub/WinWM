@@ -84,6 +84,13 @@ Close the currently focused window.
 
 **Default binding:** `Mod + Q`
 
+### `MINIMIZE_FOCUSED_WINDOW`
+Minimize currently focused window to the taskbar and automatically focus the next window.
+
+**Default binding:** `Mod + M`
+
+**Behavior:** Minimized windows are automatically excluded from the tiling layout but remain in the workspace. Restore via taskbar, Alt+Tab, or Win+Tab.
+
 ### `TOGGLE_FLOATING_WINDOW`
 Toggle floating mode for the focused window. Floating windows are not tiled and can be moved/resized freely.
 

@@ -129,6 +129,11 @@
       "arguments": []
     },
     {
+      "keys": ["modKey", "M"],
+      "command": "MINIMIZE_FOCUSED_WINDOW",
+      "arguments": []
+    },
+    {
       "keys": ["modKey", "F"],
       "command": "TOGGLE_FLOATING_WINDOW",
       "arguments": []

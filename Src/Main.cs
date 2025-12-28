@@ -38,6 +38,7 @@ class WinWM : IDisposable
             { COMMAND.FOCUS_NEXT_WORKSPACE, () => wm.FocusNextWorkspace() },
             { COMMAND.FOCUS_PREVIOUS_WORKSPACE, () => wm.FocusPreviousWorkspace() },
             { COMMAND.CLOSE_FOCUSED_WINDOW, () => wm.CloseFocusedWindow() },
+            { COMMAND.MINIMIZE_FOCUSED_WINDOW, () => wm.MinimizeFocusedWindow() },
             { COMMAND.FOCUS_LEFT_WINDOW, () => wm.FocusAdjacentWindow(EDGE.LEFT) },
             { COMMAND.FOCUS_TOP_WINDOW, () => wm.FocusAdjacentWindow(EDGE.TOP) },
             { COMMAND.FOCUS_RIGHT_WINDOW, () => wm.FocusAdjacentWindow(EDGE.RIGHT) },
@@ -316,18 +317,12 @@ class WinWM : IDisposable
 
     static void Exit()
     {
-        Logger.Log("Exit command received, shutting down WinWM...");
+        Logger.Log("Exiting WinWM...");
 
-        // First, unhook all event listeners to prevent interference
-        winwm?.wndListener.Dispose();
-        winwm?.kbdListener.Dispose();
-        winwm?.mouseListener.Dispose();
-        Logger.Log("Unhooked all event listeners");
+        // Get current workspace index before disposing
+        int currentWorkspaceIndex = winwm?.wm.focusedWorkspaceIndex ?? 0;
 
-        int workspace1Count = 0;
-        int otherWorkspacesCount = 0;
-
-        // Process windows by workspace
+        // Reset border colors on all windows
         for (int i = 0; i < (winwm?.wm.workspaces.Count ?? 0); i++)
         {
             var wksp = winwm?.wm.workspaces[i];
@@ -336,34 +331,61 @@ class WinWM : IDisposable
             foreach (var wnd in wksp.windows)
             {
                 if (wnd == null) continue;
-
-                // Reset border color to system default
                 wnd.ResetBorderColor();
+            }
+        }
 
-                if (i == 0)
+        // Move all windows from other workspaces to current workspace WITHOUT retiling
+        var currentWorkspace = winwm?.wm.workspaces[currentWorkspaceIndex];
+        if (currentWorkspace != null)
+        {
+            for (int i = 0; i < (winwm?.wm.workspaces.Count ?? 0); i++)
+            {
+                var wksp = winwm?.wm.workspaces[i];
+                if (wksp == null) continue;
+
+                foreach (var wnd in wksp.windows.ToList())
                 {
-                    // Workspace 1: Show windows normally (they stay visible)
-                    User32.ShowWindow(wnd.hWnd, SHOWWINDOW.SW_SHOWNOACTIVATE);
-                    workspace1Count++;
-                }
-                else
-                {
-                    // Other workspaces: Show then minimize (makes them accessible in taskbar)
-                    User32.ShowWindow(wnd.hWnd, SHOWWINDOW.SW_SHOWNOACTIVATE);
-                    User32.ShowWindow(wnd.hWnd, SHOWWINDOW.SW_MINIMIZE);
-                    otherWorkspacesCount++;
+                    if (wnd == null) continue;
+
+                    if (i == currentWorkspaceIndex)
+                    {
+                        // Current workspace: just ensure visible
+                        wnd.Show();
+                    }
+                    else
+                    {
+                        // Other workspaces: move to current workspace, reset position, then minimize
+                        Logger.Log($"Moving and minimizing window: {wnd.title}");
+
+                        // Direct list manipulation - no retiling
+                        wksp.windows.Remove(wnd);
+                        wnd.workspace = currentWorkspaceIndex;
+                        currentWorkspace.windows.Add(wnd);
+
+                        // Reset to a normal position/size before minimizing
+                        // This ensures windows restore to visible area when clicked from taskbar
+                        User32.SetWindowPos(
+                            wnd.hWnd,
+                            IntPtr.Zero,
+                            100,   // X position
+                            100,   // Y position
+                            2000,  // Width
+                            1000,   // Height
+                            SETWINDOWPOS.SWP_NOZORDER | SETWINDOWPOS.SWP_NOACTIVATE | SETWINDOWPOS.SWP_SHOWWINDOW
+                        );
+
+                        // Now minimize
+                        User32.ShowWindow(wnd.hWnd, SHOWWINDOW.SW_MINIMIZE);
+                    }
                 }
             }
         }
 
-        Logger.Log($"Exit cleanup: {workspace1Count} windows visible from workspace 1, {otherWorkspacesCount} windows minimized from other workspaces");
+        // Dispose all resources (detaches event handlers, unhooks Win32 hooks, closes server)
+        winwm?.Dispose();
 
-        // Complete cleanup and dispose remaining components
-        winwm?.server.Dispose();
-
-        Logger.Log("WinWM shutdown complete");
-
-        // Force exit the process (terminates all threads)
+        // Exit
         Environment.Exit(0);
     }
 
@@ -466,6 +488,7 @@ public enum COMMAND
     FOCUS_NEXT_WORKSPACE,
     FOCUS_PREVIOUS_WORKSPACE,
     CLOSE_FOCUSED_WINDOW,
+    MINIMIZE_FOCUSED_WINDOW,
     FOCUS_RIGHT_WINDOW,
     FOCUS_TOP_WINDOW,
     FOCUS_LEFT_WINDOW,
