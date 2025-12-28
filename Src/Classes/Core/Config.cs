@@ -15,7 +15,7 @@ public class Config : IJson<Config>
 
     public int inner { get; set; } = 5;
     public int workspaces { get; set; } = 9;
-    public string floatingWindowSize { get; set; } = "800x400";
+    public string floatingWindowSize { get; set; } = "60%x50%";
     public bool workspaceAnimations = false;
     public int workspaceAnimationsDuration = 500; // milliseconds
     public string workspaceAnimationsDirection = "horizontal";
@@ -67,8 +67,8 @@ public class Config : IJson<Config>
             // Toggle floating with mod + F
             new() { keys = [modKey, VK.F], command = COMMAND.TOGGLE_FLOATING_WINDOW },
 
-            // Toggle stacked window (keeping old binding)
-            new() { keys = [VK.LCONTROL, VK.LSHIFT, VK.S], command = COMMAND.TOGGLE_STACKED_WINDOW },
+            // Toggle stacked window with mod + S
+            new() { keys = [modKey, VK.S], command = COMMAND.TOGGLE_STACKED_WINDOW },
 
             // Jump to numbered workspace using mod + number
             new() { keys = [modKey, VK.NUM1], command = COMMAND.FOCUS_WORKSPACE_1 },

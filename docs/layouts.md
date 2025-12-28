@@ -82,7 +82,7 @@ After changing the layout, press `Ctrl + Shift + R` to reload the configuration.
 ```
 
 **Stack-specific commands:**
-- `TOGGLE_STACKED_WINDOW` (`Ctrl + Shift + S`) - Swap stacked window with master
+- `TOGGLE_STACKED_WINDOW` (`Alt + S`) - Swap stacked window with master
 
 ---
 

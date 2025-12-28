@@ -66,10 +66,14 @@ Number of virtual workspaces to create (1-9 recommended).
 ### Floating Window Settings
 
 ```json
-"floatingWindowSize": "800x400"
+"floatingWindowSize": "60%x50%"
 ```
 
-Default size for floating windows in `WIDTHxHEIGHT` format (pixels).
+Default size for floating windows. Supports two formats:
+- **Percentage-based** (recommended): `"60%x50%"` - 60% of screen width, 50% of screen height
+- **Absolute pixels**: `"800x400"` - fixed 800x400 pixels
+
+Percentage-based sizing automatically adapts to different screen resolutions.
 
 ---
 

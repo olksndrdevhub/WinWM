@@ -99,7 +99,7 @@ Toggle floating mode for the focused window. Floating windows are not tiled and 
 ### `TOGGLE_STACKED_WINDOW`
 Toggle stacked mode for the focused window. Only applicable in stack layout.
 
-**Default binding:** `Ctrl + Shift + S`
+**Default binding:** `Mod + S` (Alt + S by default)
 
 ---
 

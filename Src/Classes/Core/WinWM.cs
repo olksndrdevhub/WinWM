@@ -493,9 +493,27 @@ public class Workspace : IWorkspace, IMoveable
     public Workspace(Config config)
     {
         this.config = config;
+
+        // Check if floatingWindowSize is percentage-based (e.g., "60%x50%") or absolute (e.g., "800x400")
         var sizeStrs = config.floatingWindowSize.Split("x");
-        floatingWindowSize.Item1 = Convert.ToInt32(sizeStrs[0]);
-        floatingWindowSize.Item2 = Convert.ToInt32(sizeStrs[1]);
+
+        if (sizeStrs[0].EndsWith("%") && sizeStrs[1].EndsWith("%"))
+        {
+            // Percentage-based: calculate relative to screen size
+            (int screenWidth, int screenHeight) = Utils.GetScreenSize();
+
+            int widthPercent = Convert.ToInt32(sizeStrs[0].TrimEnd('%'));
+            int heightPercent = Convert.ToInt32(sizeStrs[1].TrimEnd('%'));
+
+            floatingWindowSize.Item1 = (int)(screenWidth * widthPercent / 100.0);
+            floatingWindowSize.Item2 = (int)(screenHeight * heightPercent / 100.0);
+        }
+        else
+        {
+            // Absolute pixel values
+            floatingWindowSize.Item1 = Convert.ToInt32(sizeStrs[0]);
+            floatingWindowSize.Item2 = Convert.ToInt32(sizeStrs[1]);
+        }
     }
 
     public void Add(Window wnd)

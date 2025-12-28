@@ -54,7 +54,7 @@ Manage individual windows:
 | `Mod + Q` | Close focused window |
 | `Mod + M` | Minimize focused window to taskbar |
 | `Mod + F` | Toggle floating mode for focused window |
-| `Ctrl + Shift + S` | Toggle stacked mode for focused window |
+| `Mod + S` | Toggle stacked mode for focused window |
 
 ### WinWM Commands
 
